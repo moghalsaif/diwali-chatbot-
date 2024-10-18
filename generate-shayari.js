@@ -4,6 +4,12 @@ exports.handler = async function(event, context) {
   try {
     const { userName, recipientName, connection, language, tone } = JSON.parse(event.body);
 
+    console.log('Received inputs:', { userName, recipientName, connection, language, tone });
+
+    if (!process.env.GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY is not set in environment variables');
+    }
+
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ model: "gemini-pro"});
 
@@ -37,19 +43,22 @@ What to avoid:
 
 Remember: The goal is to create a personalized, meaningful, and appropriate Diwali greeting that resonates with both the sender and the recipient while respecting the festival's spirit.`;
 
+    console.log('Sending prompt to Gemini API');
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const shayari = response.text();
+
+    console.log('Received shayari from Gemini API');
 
     return {
       statusCode: 200,
       body: JSON.stringify({ shayari }),
     };
   } catch (error) {
-    console.error('Error generating shayari:', error);
+    console.error('Error in generate-shayari function:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Failed to generate shayari" }),
+      body: JSON.stringify({ error: error.message || "Failed to generate shayari" }),
     };
   }
 };
