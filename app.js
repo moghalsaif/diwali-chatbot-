@@ -12,6 +12,8 @@ const DiwaliChatbot = () => {
   const generateShayari = async () => {
     setIsLoading(true);
     try {
+      console.log('Sending request to generate-shayari function with:', { userName, recipientName, connection, language, tone });
+      
       const response = await fetch('/.netlify/functions/generate-shayari', {
         method: 'POST',
         headers: {
@@ -26,15 +28,35 @@ const DiwaliChatbot = () => {
         }),
       });
 
+      console.log('Received response:', response);
+      console.log('Response status:', response.status);
+      console.log('Response headers:', [...response.headers.entries()]);
+
+      const responseText = await response.text();
+      console.log('Response text:', responseText);
+
       if (!response.ok) {
-        throw new Error('Failed to generate shayari');
+        throw new Error(`HTTP error! status: ${response.status}, body: ${responseText}`);
       }
 
-      const data = await response.json();
-      setShayari(data.shayari);
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        console.error('Error parsing JSON:', e);
+        throw new Error('Invalid JSON in response');
+      }
+
+      console.log('Parsed response data:', data);
+
+      if (data.shayari) {
+        setShayari(data.shayari);
+      } else {
+        throw new Error('No shayari in response');
+      }
     } catch (error) {
       console.error('Error generating shayari:', error);
-      setShayari('An error occurred while generating the shayari. Please try again.');
+      setShayari(`An error occurred: ${error.message}. Please try again or contact support.`);
     } finally {
       setIsLoading(false);
     }
