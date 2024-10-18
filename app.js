@@ -14,18 +14,19 @@ const DiwaliChatbot = () => {
     try {
       console.log('Sending request to generate-shayari function with:', { userName, recipientName, connection, language, tone });
       
-      const response = await fetch('/.netlify/functions/generate-shayari', {
-        method: 'POST',
+      const queryParams = new URLSearchParams({
+        userName,
+        recipientName,
+        connection,
+        language,
+        tone
+      }).toString();
+      
+      const response = await fetch(`/.netlify/functions/generate-shayari?${queryParams}`, {
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          userName,
-          recipientName,
-          connection,
-          language,
-          tone,
-        }),
       });
 
       console.log('Received response:', response);
